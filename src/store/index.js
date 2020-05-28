@@ -28,26 +28,24 @@ const store = new Vuex.Store({
         do {
           events[counter + payload] = sortedParkings[counter]
           sortedFuelChanges.forEach(fC => {
-            if (fC.fuel_time >= sortedParkings[counter].start_time && fC.fuel_time >= sortedParkings[counter].stop_time) {
+            if (fC.fuel_time >= sortedParkings[counter].start_time && fC.fuel_time <= sortedParkings[counter].stop_time) {
               events[counter + ++payload] = fC
             }
           })
           ++counter
 
-        } while (sortedFuelChanges.length - payload + sortedFuelChanges.length - counter > 0)
+        } while (sortedFuelChanges.length - payload + sortedParkings.length - counter > 0)
       }
 
       const dateFormat = 'HH:mm:ss'
 
       const formattedEvents = events.map(e => {
         if (e.type === 'parking') {
-          return { ...e, title: 'Parking', start_time: moment(e.start_time).format(dateFormat), stop_time: moment(e.stop_time).format(dateFormat) }
+          return { ...e, title: 'Parking', start_time: moment.utc(e.start_time).local().format(dateFormat), stop_time: moment.utc(e.stop_time).local().format(dateFormat) }
         } else {
-          return { ...e, title: 'Fuel change', fuel_time: moment(e.fuel_time).format(dateFormat) }
+          return { ...e, title: 'Fuel change', fuel_time: moment.utc(e.fuel_time).local().format(dateFormat) }
         }
       })
-
-      console.log('events: ', events)
 
       return formattedEvents;
     }
