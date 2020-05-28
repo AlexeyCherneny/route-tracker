@@ -1,5 +1,16 @@
 <template>
   <div class="root">
+    <l-map class="map" :zoom="zoom" :center="center">
+      <l-tile-layer :url="url"></l-tile-layer>
+
+      <l-marker
+        v-for="item in (transportEvents.filter(i => i.lt && i.ln))"
+        :key="item.id"
+        :lat-lng="[item.lt, item.ln]"
+        :icon="getIcon(item)"
+        v-on:click="activeEventId = item.id"
+      ></l-marker>
+    </l-map>
     <div class="route-table">
       <v-simple-table>
         <template v-slot:default>
@@ -20,26 +31,17 @@
               <td>{{ item.title }}</td>
 
               <td v-if="item.type === 'parking'">{{ item.start_time }} - {{ item.stop_time }}</td>
-              <td v-else>{{ item.fuel_time }}</td>
+              <td v-else-if="item.type === 'filling' || item.type === 'draining'">{{ item.fuel_time }}</td>
+              <td v-else></td>
 
               <td v-if="item.type === 'parking'"></td>
-              <td v-else>{{ item.amount }}</td>
+              <td v-else-if="item.type === 'filling' || item.type === 'draining'">{{ item.amount }}</td>
+              <td v-else>{{ item.travelTime }}</td>
             </tr>
           </tbody>
         </template>
       </v-simple-table>
     </div>
-    <l-map class="map" :zoom="zoom" :center="center">
-      <l-tile-layer :url="url"></l-tile-layer>
-
-      <l-marker
-        v-for="item in transportEvents"
-        :key="item.id"
-        :lat-lng="[item.lt, item.ln]"
-        :icon="getIcon(item)"
-        v-on:click="activeEventId = item.id"
-      ></l-marker>
-    </l-map>
   </div>
 </template>
 
@@ -94,7 +96,7 @@ export default {
           iconUrl = fillUrl;
           break;
         }
-        case "drainingUrl": {
+        case "draining": {
           iconUrl = drainingUrl;
           break;
         }
@@ -123,13 +125,17 @@ export default {
 
 <style scoped>
 .root {
+  height: 100%;
+  flex-direction: column;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  align-items: center;
 }
 
 .map {
   height: 400px;
   width: 400px;
+  margin-bottom: 30px;
 }
 
 .route-table {
