@@ -36,6 +36,7 @@
         v-for="item in transportEvents"
         :key="item.id"
         :lat-lng="[item.lt, item.ln]"
+        :icon="getIcon(item)"
         v-on:click="activeEventId = item.id"
       ></l-marker>
     </l-map>
@@ -72,7 +73,46 @@ export default {
     };
   },
 
-  methods: mapActions(["fetchParkings", "fetchfuelChanges"]),
+  methods: {
+    ...mapActions(["fetchParkings", "fetchfuelChanges"]),
+    getIcon(event) {
+      const fillUrl = "https://img.icons8.com/ios/344/gas-pump.png";
+      const drainingUrl = "https://img.icons8.com/ios-filled/344/gas-pump.png";
+      const parkingUrl =
+        "https://img.icons8.com/color/344/parking-meter--v1.png";
+      const defaultUrl = "https://img.icons8.com/android/344/marker.png";
+
+      let iconUrl;
+      let iconSize = [38, 38];
+
+      switch (event.type) {
+        case "parking": {
+          iconUrl = parkingUrl;
+          break;
+        }
+        case "filling": {
+          iconUrl = fillUrl;
+          break;
+        }
+        case "drainingUrl": {
+          iconUrl = drainingUrl;
+          break;
+        }
+        default: {
+          iconUrl = defaultUrl;
+        }
+      }
+
+      if (this.activeEventId === event.id) {
+        iconSize = [60, 60];
+      }
+
+      return L.icon({
+        iconUrl,
+        iconSize
+      });
+    }
+  },
 
   created: function() {
     this.fetchParkings();
