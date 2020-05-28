@@ -22,17 +22,17 @@ export const parkings = {
 
 export const fuelChanges = {
     status: 200, data: [{
-        "id": 68141,
+        "id": 68131,
         "fuel_time": "2020-05-25 12:24:19",
-        "x": 24.723,
-        "y": 59.3926,
+        "ln": 24.723,
+        "lt": 59.3926,
         "amount": 328.6,
     },
     {
         "id": 68141,
         "fuel_time": "2020-05-25 12:39:39",
-        "x": 24.724,
-        "y": 59.3925,
+        "ln": 24.724,
+        "lt": 59.3925,
         "amount": -100.5,
     }]
 }

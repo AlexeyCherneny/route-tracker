@@ -1,103 +1,62 @@
 import Vuex from 'vuex'
 import Vue from 'vue'
+import moment from 'moment'
 
-import fetchData from '../services/api'
-import { parkings, fuelChanges } from '../services/stubs'
+import parkings from './modules/parkings'
+import fuelChanges from './modules/fuelChanges'
 
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    transportParkings: {
-      data: null,
-      isLoading: false
-    },
-    transportFuelChanges: {
-      data: null,
-      isLoading: false
-    }
   },
   mutations: {
-    // transoprtParkings mutations
-    transoprtParkingsRequest(state) {
-      state.transportParkings = {
-        ...state.transportParkings,
-        data: null,
-        isLoading: true,
-        
-      }
-    },
-    transoprtParkingsSuccess(state, data) {
-      state.transportParkings = {
-        ...state.transportParkings,
-        data: data,
-        isLoading: false,
-      }
-    },
-    transoprtParkingsFailure(state) {
-      debugger
-      state.transportParkings = {
-        ...state.transportParkings,
-        data: null,
-        isLoading: false,
-        
-      }
-    },
-
-    // transportFuelChanges mutations
-    transportFuelChangesRequest(state) {
-      state.transportFuelChanges = {
-        ...state.transportFuelChanges,
-        data: null,
-        isLoading: true
-      }
-    },
-    transportFuelChangesSuccess(state, data) {
-      state.transportFuelChanges = {
-        ...state.transportFuelChanges,
-        data: data,
-        isLoading: false
-      }
-    },
-    transportFuelChangesFailure(state) {
-      state.transportFuelChanges = {
-        ...state.transportFuelChanges,
-        data: null,
-        isLoading: false
-      }
-    },
   },
   getters: {
-    transportParkingsData(state) {
-      if (state.transportParkings.data && state.transportParkings.data.length) {
-        return state.transportParkings.data
+    transportEvents: function ({ parkings, fuelChanges }) {
+
+      let sortedParkings = parkings.parkings.sort((p1, p2) => p1.start_time < p2.start_time).map(p => ({ ...p, type: 'parking' }))
+      let sortedFuelChanges = fuelChanges.fuelChanges.sort((fC1, fC2) => fC1.fuel_time_time < fC2.fuel_time_time).map(p => ({ ...p, type: 'fuelChange' }))
+
+
+      let counter = 0;
+      let payload = 0;
+
+      const events = [];
+
+      if (sortedParkings.length && sortedFuelChanges.length) {
+        do {
+          events[counter + payload] = sortedParkings[counter]
+          sortedFuelChanges.forEach(fC => {
+            if (fC.fuel_time >= sortedParkings[counter].start_time && fC.fuel_time >= sortedParkings[counter].stop_time) {
+              events[counter + ++payload] = fC
+            }
+          })
+          ++counter
+
+        } while (sortedFuelChanges.length - payload + sortedFuelChanges.length - counter > 0)
       }
-      return []
-    },
+
+      const dateFormat = 'HH:mm:ss'
+
+      const formattedEvents = events.map(e => {
+        if (e.type === 'parking') {
+          return { ...e, title: 'Parking', start_time: moment(e.start_time).format(dateFormat), stop_time: moment(e.stop_time).format(dateFormat) }
+        } else {
+          return { ...e, title: 'Fuel change', fuel_time: moment(e.fuel_time).format(dateFormat) }
+        }
+      })
+
+      console.log('events: ', events)
+
+      return formattedEvents;
+    }
   },
   actions: {
-    async fetchTransportParkings({ commit }) {
-      commit('transoprtParkingsRequest')
-
-      const response = await fetchData(parkings)();
-
-      if (response.status === 200) {
-        commit('transoprtParkingsSuccess', response.data)
-      } else {
-        commit('transoprtParkingsFailure')
-      }
-    },
-    async fetchTransportFuelChange({ commit }) {
-      commit('transportFuelChangesRequest')
-
-      const response = await fetchData(fuelChanges)();
-
-      if (response.status === 200) {
-        commit('transportFuelChangesSuccess', response.data)
-      } else {
-        commit('transportFuelChangesFailure')
-      }
-    }
+  },
+  modules: {
+    parkings,
+    fuelChanges
   }
 })
 
