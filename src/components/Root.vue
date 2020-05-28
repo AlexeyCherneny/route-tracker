@@ -25,7 +25,7 @@
             <tr
               v-for="item in transportEvents"
               :key="item.id"
-              v-on:click="activeEventId = item.id"
+              v-on:click="item.id ? activeEventId = item.id : null"
               v-bind:class="{ active: activeEventId === item.id }"
             >
               <td>{{ item.title }}</td>
